@@ -1,13 +1,16 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
+const buffer = document.createElement("canvas");
+const bufferCtx = buffer.getContext("2d");
 //canvas.setAttribute("style", "transform:scale(2,2)");
 //ctx.imageSmoothingEnabled = false;
 const tileW = 32;
 const tileH = 32;
 
-canvas.width = 6000;
+canvas.width = window.innerWidth;
 canvas.height = 32 * 26;
-
+buffer.width = 32 * 544;
+buffer.height = 32 * 24;
 // const scaleX = window.innerWidth / canvas.width;
 // const scaleY = window.innerHeight / canvas.height;
 
@@ -46,7 +49,8 @@ const level = parseJson("./map.json").then((m) => {
   const layers = m.layers;
   const cols = m.width;
   const tileMapCols = m.tilewidth;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // bufferCtx.fillStyle = "black";
+  // bufferCtx.fillRect(0, 0, buffer.width, buffer.height);
 
   layers.forEach((layer) => {
     loadImage("./images/tiles32x32.png").then((img) => {
@@ -56,7 +60,7 @@ const level = parseJson("./map.json").then((m) => {
         const tilemapX = (element - 1) % tileMapCols;
         const tileMapY = Math.floor((element - 1) / tileMapCols);
 
-        ctx.drawImage(
+        bufferCtx.drawImage(
           img,
           tilemapX * tileW,
           tileMapY * tileH,
@@ -72,10 +76,37 @@ const level = parseJson("./map.json").then((m) => {
   });
 });
 
+class Player {
+  constructor(x, y) {
+    this.pos = { x: x * tileW, y: y * tileH };
+    this.w = 96;
+    this.h = 128;
+    this.vel = { x: 0.5, y: 0 };
+  }
+
+  draw(ctx) {
+    // ctx.fillStyle = "red";
+    // ctx.fillRect(this.pos.x, this.pos.y, this.w, this.h);
+    // ctx.fillStyle = "black";
+  }
+
+  update(ctx) {
+    this.pos.x -= this.vel.x;
+    this.pos.y -= this.vel.y;
+    this.draw(ctx);
+  }
+}
+const player = new Player(0, 0);
 function animate() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, canvas.height - tileH * 3, canvas.width, canvas.height);
+  ctx.fillStyle = "green";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(buffer, player.pos.x, player.pos.y);
+  player.update(ctx);
   window.requestAnimationFrame(animate);
 }
 animate();
 window.level = level;
+window.player = player;
+window.addEventListener("keydown", (e) => {
+  console.log(e.code);
+});

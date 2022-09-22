@@ -7,9 +7,13 @@
   }
   div.container {
     display:flex;
-    justify-content: left;
+    justify-content: center;
     align-items: top; 
     width: 100vw;
     height: 100vh;
     overflow: hidden;          
+  }
+  canvas {
+    /* min-width: 100vw;
+    min-height: 100vh; */
   }
