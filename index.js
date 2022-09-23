@@ -1,5 +1,9 @@
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
+
+const buffer = document.createElement("canvas");
+const bufferCtx = buffer.getContext("2d");
+
 //canvas.setAttribute("style", "transform:scale(2,2)");
 //ctx.imageSmoothingEnabled = false;
 const tileW = 32;
@@ -7,6 +11,30 @@ const tileH = 32;
 
 canvas.width = 6000;
 canvas.height = 32 * 26;
+buffer.width = 32 * 546;
+buffer.height = 32 * 44;
+class Camera {
+  constructor(pos) {
+    this.pos = pos;
+  }
+  update() {
+    this.pos.x += player.vel.x;
+    this.pos.y += player.vel.y;
+  }
+}
+
+class Player {
+  constructor(pos, vel) {
+    this.pos = pos;
+    this.vel = vel;
+    this.prev = this.vel;
+  }
+
+  update() {
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+  }
+}
 
 // const scaleX = window.innerWidth / canvas.width;
 // const scaleY = window.innerHeight / canvas.height;
@@ -46,7 +74,8 @@ const level = parseJson("./map.json").then((m) => {
   const layers = m.layers;
   const cols = m.width;
   const tileMapCols = m.tilewidth;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  bufferCtx.fillStyle = "black";
+  bufferCtx.fillRect(0, 0, buffer.width, buffer.height);
 
   layers.forEach((layer) => {
     loadImage("./images/tiles32x32.png").then((img) => {
@@ -56,7 +85,7 @@ const level = parseJson("./map.json").then((m) => {
         const tilemapX = (element - 1) % tileMapCols;
         const tileMapY = Math.floor((element - 1) / tileMapCols);
 
-        ctx.drawImage(
+        bufferCtx.drawImage(
           img,
           tilemapX * tileW,
           tileMapY * tileH,
@@ -73,9 +102,55 @@ const level = parseJson("./map.json").then((m) => {
 });
 
 function animate() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, canvas.height - tileH * 3, canvas.width, canvas.height);
+  ctx.drawImage(buffer, camera.pos.x, camera.pos.y);
+  //ctx.fillStyle = "black";
+  ///ctx.fillRect(0, canvas.height - tileH * 3, canvas.width, canvas.height);
+  camera.update();
+
   window.requestAnimationFrame(animate);
 }
+
+player = new Player({ x: 12, y: 12 }, { x: -15, y: 0 });
+camera = new Camera({ x: 0, y: 0 });
 animate();
 window.level = level;
+
+window.addEventListener("keydown", (e) => {
+  player.prev.x = player.vel.x;
+  player.prev.y = player.vel.y;
+
+  if (e.code === "Space") {
+    if (player.vel.x === 0 && player.vel.y === 0) {
+      player.vel.x = player.prev.x;
+      player.vel.y = player.prev.y;
+    } else {
+      player.vel.x = 0;
+      player.vel.y = 0;
+    }
+  }
+
+  if (e.code === "ArrowRight") {
+    if (player.vel.x >= 0) {
+      player.vel.x = -15;
+    }
+  }
+
+  if (e.code === "ArrowLeft") {
+    if (player.vel.x <= 0) {
+      player.vel.x = 15;
+    }
+  }
+
+  if (e.code === "ArrowDown") {
+    if (player.vel.y >= 0) {
+      player.vel.y = -15;
+    }
+  }
+
+  if (e.code === "ArrowUp") {
+    if (player.vel.y <= 0) {
+      player.vel.y = 15;
+    }
+  }
+  console.log(e.code);
+});
